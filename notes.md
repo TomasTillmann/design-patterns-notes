@@ -101,6 +101,7 @@ public class HouseDirector{
 * encapsulation, hides implementation, like concrete product's properties (can only be modified by builders build methods)
 
 # Prototype
+## Use
 * want to make exact copy of some object x instantiated from class X
   * make a new intance y of X
   * fill all fields of y the same as x have
@@ -113,7 +114,11 @@ public class HouseDirector{
  * define new interface Prototype (or IClonable) and define method Clone()
  * make X implement Prototype
  * imlement Clone()
- 
+ * 
+  ## Other use
+ * got some object x from some library and the library doesn't want client to have access to it's class (cannot call new X());
+ * Library hence makes x implement Prototype, so client can make copy of x
+ * eg Unity has fabrics, cannot call new Fabric(), client just makes copy of it (bullets, troops, npcs, ... )
  ## How to implement Clone()
  ```c#
  class X {
@@ -153,10 +158,17 @@ public class HouseDirector{
 ## What it is
 * only one instance of a class
 * ensures global access
+ * its not a global variable
 
 ## When to use
 * One shared something over the whole programm for the whole time
- * eg. database, some file
+ * eg. database, some file, one logger, ...
+
+## Difference between static
+* live of static class cannot be controlled
+* singleton can be passed around
+* singleton can inherit
+* singleton can use lazy algorithms
 
 ## Implementation
 ```cs
@@ -188,6 +200,8 @@ public class Singleton{
 * violes single responsibility principle - "solves" two thing
 * very hard to implement when using parallel programming - very hard to ensure no data races occur (and then potentially deadlocks)
 * hard to write tests
+* possibility of resource leaks
+  * when to unallocate? Let it unallocate at the end of process?
 
 # **Structural patterns**
 
