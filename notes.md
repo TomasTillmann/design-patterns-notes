@@ -205,3 +205,57 @@ public class Singleton{
 
 # **Structural patterns**
 
+# Adapter
+* converts one API to another API
+* convinient, when we have some common API but we want to use 3rd party API
+  * instead of learning this new API and working with it in client code, we create adapter that translates our common API paradigms to this 3rd library API
+* real life analogy: electrical plug in US and in Europe
+
+## Actors
+1. Adapter
+ * converts from one API to another
+2. Service
+  * usually some 3rd party API
+  * adapter converts from current bussines logic API's paradigms to this 3rd party API
+3. client interface
+  * what we want our service incorporate into
+
+## Implementation
+* adapter inherits from client interface
+* hence, it has now the same methods
+* these methods imitate the behaviour of service
+
+```cs
+public class Service{
+ public int getWidth(){
+ }
+}
+
+public class A : ClientInterface {
+public int getRadius(){
+ }
+}
+
+public class B : ClientInterface {
+  public int getRadius(){
+  }
+}
+...
+
+public class AdapterOfService : ClientInterface {
+  private Service service;
+  public int getRadius(){
+     return service.getWidth();
+     // or perform some calculation or something;
+  }
+}
+```
+## Advantages
+* single responsibiity principle
+   * seperates services API from the bussiness logic (separation of concerns)
+* open closed principle
+   * can add new adapters easily
+
+## Disadvantages
+* complexity of code can increase dramatically, because of new adpater classes, potentially adpter interfaces (if more than one)
+   * might be easier to just rewrite service API
