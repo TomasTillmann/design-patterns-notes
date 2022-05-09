@@ -1,3 +1,4 @@
+# **Creational Patterns**
 # Prototype
 * want to make exact copy of some object x instantiated from class X
   * make a new intance y of X
@@ -46,3 +47,45 @@
 ## Disadvantages
 * complex objects with eg. circular dependencies might be too difficult to copy
 
+
+# Singleton
+## What it is
+* only one instance of a class
+* ensures global access
+
+## When to use
+* One shared something over the whole programm for the whole time
+ * eg. database, some file
+
+## Implementation
+```cs
+public class Singleton{
+ public a;
+ public b;
+ ...
+ 
+ private static Singleton instance;
+ private Singleton(){}
+ 
+ public static Singleton GetInstance(){
+ if(instance == null) { instance = new Singleton() }
+ return instance;
+}
+...
+```
+* private constructor
+* static instance
+* method GetInstance
+
+## Advantages
+* one instance guaranteed - global access to one resource, no duplicates
+* more convinient than static class
+* globals are in some kind of container, not scattered all around the place
+
+## Disadvantages
+* different modules sharing one singleton might know too much about each other
+* violes single responsibility principle - "solves" two thing
+* very hard to implement when using parallel programming - very hard to ensure no data races occur (and then potentially deadlocks)
+* hard to write tests
+
+# **Behavioral patterns**
