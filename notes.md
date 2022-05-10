@@ -504,3 +504,40 @@ notification.Notify();
 * hard to delete decorator from stack
 * the ordering of decorators matters
 * 
+
+# Facade
+* provides simpler communication layer between client and complext system/API/library ...
+* provides only functionality needed by the client
+* hides implementation details about how this complex system works
+* layer between clients and subsystem
+
+## Example
+* Compiler
+  * takes high level orders from client
+  * delegates them to subsystems
+    * scanner
+    * parser
+* scanner and parser can too have be implemented as facade
+  * multi level facade hierarchy
+
+## When to not use
+* facade has the same complexity as underlying system
+* not needed at all, communication with system isn't that complex
+* too much bussiness logic in the facade
+  * facade should only act as kind of a middleman between clients and system
+  * shouldn't make it's own logic
+* facade should be an option, not a necessity
+  * clients should be able to communicate with system directly with the same effects
+  * communicating through facade is just more convinient
+* system shouldn't know about facade
+  * one system can also have multiple facades, each "converting" system's API to each client's needs
+
+## Advantages
+* easier interface, taylored to clients needs
+* open/closed principle
+  * can easily add or delete facades
+
+## Disadvantages
+* client code can be too coupled to the facade - become a god object
+
+  # Flyweigth
