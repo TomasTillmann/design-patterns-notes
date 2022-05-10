@@ -811,6 +811,134 @@ public class DatabseProxy : Database {
 * makes code a lot more complex
 * adds new layer
   
+# **Behavioral patterns**
+# Chain of responsibility
+* structure to deal with clients requests
+* objects composed to a chain like struture
+* each object in this chain either fullfils the request or pass the request along in the chain
+
+## Example
+* request to process different coins (eg sw for snack dispenser)
+
+## Bad solutions
+1. one huge monolithic class with swith over coin
+1. one interface Handler and many subclasses as coin handlers (eg oneCoinHandler, twoCoinHandler, ...)
+  * client needs to know the implementation
+  * needs to try every handler and see if it succeded or not
+  * that is extremely inconvinient API
+
+## Great solution
+* use chaing of responsibility
+* each handler has successor
+* each handler will try to execute or pass the request along the chain, to it's successor
+
+## Actors
+1. Handler
+* interface for each handler in the chain
+  * Execute() (SetSuccessor())
+
+2. BaseHandler
+* optional abstract class
+* defines reference to successor and some common behaviour
+* see code for example
+
+3. concreteHandler
+* concrete handler implementation
+
+```cs
+// handler interface
+public interface Handler {
+  public void Execute(Coin coin);
+}
+
+// optional
+//defines some common behaviour
+public abstract class BaseCoinHandler {
+  public virtual Handler Successor;
+
+  public virtual void Execute(Coin coin) {
+    // coin is the required size 
+    if(coin < 42) {
+      // process coin
+    }
+    else if (Successor != null) {
+      Successor.Execute();
+    }
+  }
+}
+
+public oneCoinHandler : BaseCoinHandler {
+  public override Handler Successor;
+
+
+  public override void Execute(Coin coin) {
+    // one coin
+    if (coin.Size <= 2) {
+      // execute 
+    }
+    else if(Successor != null) {
+      Successor.Execute();
+    }
+  }
+}
+
+// client code
+//init of handlers - should be hidden in some method - it would make sense to create new class coinHandler : Handler with method getNewCoinHandler or smthng and then call Execute
+Handler c1 = new oneCoinHandler(); 
+Handler c2 = new twoCoinHandler();
+...
+Handler c50 = new fiftyCoinHandler();
+
+c50.Successor = c20;
+c20.Successor = c10;
+...
+
+Handler coinHandler = c50;
+
+// actual code
+Coin coin = Dispenser.GetCoin();
+coinHandler.Execute(coin);
+```
+
+* client doesnt need to know about any implementation details
+* no for loops or anything like that needed
+* what if
+
+```cs
+coinHandler.Execute(42);
+```
+* unknown coin, it will be passed to the last handler, whose successor is null
+* How should handler behave?
+* Lets create new default handler that will finish the chain
+
+```cs
+public class DefaultCoinHandler : BaseCoinHandler {
+  public Handler Successor = null;
+
+  public override void Execute(Coin coin) {
+    // do some default operation
+  } 
+}
+Handler defaultHandler =  new DefaultCoinHandler();
+c1.Successor = defaultHandler;
+```
+
+## When to use
+* client wants to have some request processed and he doesn't care how it's done
+* many different conditions when proccessing a request are needed
+  * essentially need for composition instead of static class subclassing
+* when order of processing matters
+
+## Advantages
+* control of requests processing
+* flexibly can change requests
+* open/closed principle
+  * add, change and delete chains dynamically without breaking client code
+
+## Disadvantages
+* some request might become unhandled
+
+
 
 
 
