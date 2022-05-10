@@ -540,4 +540,199 @@ notification.Notify();
 ## Disadvantages
 * client code can be too coupled to the facade - become a god object
 
-  # Flyweigth
+# Flyweigth
+* detaches shared state between many objects
+* thanks to that, it reduces memory consumption
+
+## Example
+* game with many ants
+```cs
+public class Ant {
+  public Location location;
+  public int health;
+  public Sprite sprite;
+  public Color color;
+
+  public Ant(Location location, Health health, Sprite sprite, Color color) {
+    this.location = location;
+    this.health = health;
+    this.type = type;
+    this.sprite = sprite;
+    this.color = color;
+  }
+
+  public void Move(Location location) {
+    this.location = location;
+  }
+}
+```
+* having many ants will be very hard on memory
+
+## Solution
+```cs
+// specific mutable data - intrinsic
+public class Ant {
+  public Location location;
+  public int health;
+  public AntType type;      // reference to flyweight
+
+  public Ant(Location location, Health health, Type type) {
+    this.location = location;
+    this.health = health;
+    this.type = type;
+  }
+
+  // methods stay the same
+  public void Move(Location location) {
+    this.location = location;
+  }
+}
+
+
+// shared immutable data - extrinsic
+public class AntType {
+  public Sprite sprite;
+  public Color color;
+}
+
+
+// Ant can be a struct, to reduce class overhead
+public struct Ant {
+  public Location location;
+  public int health;
+  public AntType type;
+
+  ...
+}
+
+// shared data shouldn't be struct, because it needs to live on heap, in order to be shared
+```
+
+* bigger the extrinsic data, bigger the memory save
+* it might be hard to manage flyweights just like that, imagine client code
+
+```cs
+// this is wrong, cannot be creating new instances of type each time we want an ant
+Ant ant = new Ant(new Location(1,2), 100, new Type(SpriteEnum.Warrior, Color.Red));
+```
+* we nned to recycle extrinsic data, and we don't want client to do it
+
+## Flyweight factory
+* when client wants new Ants, he asks ant factory
+
+```cs
+public class AntFactory {
+  private AntType[] types;
+
+  public GetAnt(Location location, int health, Sprite sprite, Color color) {
+    return new Ant(location, health, GetAntType(sprite, color));
+  } 
+
+  // recycles already initiated shared types
+  private AntType GetAntType(sprite, color) {
+    AntType type = types.Find(sprite, color);
+    return (type == null) ? new AntType(sprite, color) : type;
+  }
+}
+
+//client
+var factory = new AntFactory();
+var rand = new AntRandom();
+var ants = new List<Ant>();
+
+for(int i = 0; i < 100000; i++) {
+  ants.Add(factory.GetAnt(rand.Location(), rand.Health(), rand.Type()));
+}
+```
+* client doesn't care at all about implementation
+
+## Actors
+* Flyweight
+  * shared state
+  * ant type
+
+* Context
+  * unique state with reference to flyweight
+    * Ant
+
+* Flyweight Factory
+  * manages flyweights
+  * client communicates with it
+
+## It still could be done better
+```cs
+public struct Ant {
+  // intrinsic state
+  public Location location;
+  public int health;
+
+  // no reference to shared state
+
+  public Ant(Location location, Health health) {
+    this.location = location;
+    this.health = health;
+  }
+
+  // passing the flyweight in when needed
+  public void Attack(Player player, AntType type) {
+
+    // how ant attacks is dermined by type and currents ants health
+    // extrinsic and intrinsic state
+    type.Attack(player, health);
+  }
+
+  // some methods might remain the same becaue they don't need flyweight
+  public void Move(Location location) {
+    this.location = location;
+  }
+}
+
+
+// shared immutable data - extrinsic
+public class AntType {
+  public Sprite sprite;
+  public Color color;
+
+}
+
+public class Warrior : AntType {
+  public void Attack(Player player, int health) {
+    // concrete attack of warrior based on health implementation
+  }
+}
+
+
+// Ant can be a struct, to reduce class overhead
+public struct Ant {
+  public Location location;
+  public int health;
+  public AntType type;
+
+  ...
+}
+```
+* this way, we saved even space for all the references
+* client decides at runtime what ant type will he pass in to each ant
+
+## When to use
+* only when we really need to save space 
+
+
+## Advantages
+* huge RAM space saver
+
+## Disadvantages
+* RAM over CPU trade  
+  * possible recalculation everytime flyweight method is called
+* big complications in the code and a lot of new problems to take care of
+  * shared state pool
+  * allocation and deallocation of objects
+    * eg client should tell flyweightFactory, when hes not going to use some shared state anymore
+
+
+
+
+  
+
+
+
