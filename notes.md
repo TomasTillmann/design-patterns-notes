@@ -729,9 +729,87 @@ public struct Ant {
   * allocation and deallocation of objects
     * eg client should tell flyweightFactory, when hes not going to use some shared state anymore
 
+# Proxy
+* acts as a middleman between some service and client
+* its very useful if we want to make some operations before or/and after we call some service methods
+
+## Example
+* Client communicates with databaseObject, but client want to have cache for this database
+* this databaseObject is 3rd party so he cannot change it's code
+
+## Solution
+* creates a proxy, that implements the same interface as databaseObject, disguising as the database itself
+* proxy has reference od database
+* proxy can add some new logic and the functionality of databseObject remains the same
+```cs
+public interface Database {
+  public Data getCount(Entity entity);
+  ...
+
+}
+public class DatabaseObject : Database {
+  public Data getCount(Entity entity) {
+    // we don't know the implementation, and we don't have to
+  }
+}
 
 
+public class DatabseProxy : Database {
+  // reference to original database
+  private Database database;
+  // internal cache
+  private Dict<Entity, Data> cache; 
 
+  public DatabaseProxy(Database database) {
+    this.database = database;
+  }
+  
+  // wrapped cache around original call to database
+  public int getCount(Entity entity) {
+    if(cache.Contains(entity)) {
+      return cache[entity];
+    }
+    else {
+      Data data = database.getCount(entity);
+      cache[entity] = data;
+      return data;
+    }
+  }
+}
+```
+
+* proxy used above is surprisingly called cache proxy
+* there are other proxies
+
+## Types of proxies
+* protection proxy
+  * protects the original resource
+  * eg. wraps age check around Drive()
+
+* remote proxy
+  * local representant of remote object
+
+* virtual proxy
+  * mock object representing the real one
+  * eg we need to test some module that uses something that isnt implemented yet
+
+* cache proxy
+  * as seen above
+
+* logging proxy
+  * logging
+
+## Advantages
+* optmization and strategy of accessing some resources
+* seperation of concerns / single responsibility principle
+  * seperation of eg administration (protection proxy, logging proxy) or optimization (cache proxy) from functional code 
+* client doesnt need to know about anything of this, he can be completely oblivious to this new added layer
+* open/closed principle
+  * new proxies can be removed and/or added very easily 
+
+## Disadvantages
+* makes code a lot more complex
+* adds new layer
   
 
 
