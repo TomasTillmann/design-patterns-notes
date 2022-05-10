@@ -206,6 +206,7 @@ public class Singleton{
 # **Structural patterns**
 
 # Adapter
+* don't confuse with wrapper (that is decorator)
 * converts one API to another API
 * convinient, when we have some common API but we want to use 3rd party API
   * instead of learning this new API and working with it in client code, we create adapter that translates our common API paradigms to this 3rd library API
@@ -242,14 +243,66 @@ public class B : ClientInterface {
 }
 ...
 
+// object adapter
 public class AdapterOfService : ClientInterface {
   private Service service;
+
+  public AdapterOfService(Service s){
+    service = s;
+  }
+
   public int getRadius(){
      return service.getWidth();
      // or perform some calculation or something;
   }
 }
+
+// class adapter
+// or adapter can inherit from service
+public class AdapterOfService : ClientInterface, /*(private)*/ Service {
+  public int getRadius(){
+    return getWidth();
+    // can simply call Services methods, doesnt need to remember Service instance
+  }
+}
 ```
+* adapter cal also define some methods from client interface without the use of service
+
+## pluggable adapter
+```cs
+// Service
+public class Cat{
+  public void Meow(){ WriteLine("Meow"); }
+}
+
+// Service
+public class Dog{
+  public void Bark(){ WriteLine("Meow"); }
+}
+
+// client interface
+public interface SoundMaker{
+  public void MakeSound();
+}
+
+// pluggable adapter
+public class AnimalSound : SoundMaker{
+  public void Action MakeSound();
+  public AnimalSound(Action MakeSound){
+    this.MakeSound = MakeSound;
+  }
+}
+
+//client code
+SoundMaker dogSound = new AnimalSound(new Dog().Bark);
+SoundMaker catSound = new AnimalSound(new Cat().Meow);
+
+
+```
+## When to use
+* client wants to use non compatible interface
+* dynamic change of objects behaviour (wrapper)
+
 ## Advantages
 * single responsibiity principle
    * seperates services API from the bussiness logic (separation of concerns)
@@ -259,3 +312,85 @@ public class AdapterOfService : ClientInterface {
 ## Disadvantages
 * complexity of code can increase dramatically, because of new adpater classes, potentially adpter interfaces (if more than one)
    * might be easier to just rewrite service API
+
+# Bridge
+* seperates abstraction and implementation
+* assigns responsibility for each dimension to each new module (class)
+
+## Actors
+* abstraction
+* implementation
+
+## Example
+* we have enemy
+* enemy has different weapons (sword, bow, hands, ...)
+* class enemy
+  * subclasses - swordEnemy, bowEnemy, ...
+* but later we want some enemies to have different appereances (skeleton, viking, ...)
+  * skeletonSwordEnemy, skeletonBowEnemy, ..., vikingSwordEnemy, ... ?? 
+    * exponential growth
+* it's better to seperate these two dimensions
+
+```cs
+// abstraction
+public class Enemy{
+  private IWeapon _weapon;
+  private IAppereance _appereance;
+
+  public Enemy(IWeapon weapon, IAppereance appereance){
+    _weapon = weapon; _appereance = appereance;
+  }
+
+  public void Attack(Player player){
+    // delegates work of attacking to a different entity - seperation
+    _weapon.Attack(player);
+  }
+
+  public void OnLoad(){
+    // delegates work of attacking to a different entity - seperation
+    _appereance.Render(this);
+  }
+}
+
+// implementation interface
+public interface IWeapon{
+  public void Attack(Player player);
+  ...
+}
+
+// implementation interface
+public interface IAppereance{
+  public void Render(Enemy enemy);
+  ...
+}
+
+public Sword : IWeapon {
+  public void Attack(Player player) {
+    // concrete implementation
+  }
+}
+...
+```
+
+* this way we avoid exponential growth and bring seperation and abstraction, hence bringing more maintainable and easily understandable code
+* it also brigns flexibility, because abstraction isn't dependent on implementation
+
+* another nice example is for example some algorithm (find shortest path in maze)
+  * abstraction is usually the same (find nearby cells, then check if we were there before etc ...)
+  * what differs is how we choose the best next move (moves) where to go in each step
+    * this is implementation
+    * we can seperate abstraction (the flow of the algorithm) and implementation (concrecete calculation and decision making based on some data)
+
+## When to use
+* good for breaking up one big monolithic class
+* or potentially exponentially large subclasses system
+
+## Advantages
+* seperation of concerns - single responsibility principle
+* open/closed principle
+  * easily can add and change implementations, even abstractions
+    * can make more extended abstractions, using the same or new implementations
+* client can work in abstraction layer, which is very convinient
+
+## Disadvantages
+* I see no disadvantages
