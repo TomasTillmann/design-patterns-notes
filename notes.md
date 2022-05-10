@@ -394,3 +394,113 @@ public Sword : IWeapon {
 
 ## Disadvantages
 * I see no disadvantages
+
+# Decorator
+* also called wrapper
+* uses composition instead of inheritance
+* let's client change behaviour of objects at run time
+
+## Example
+* Notification application
+* class notification
+* want to add support for different communication channels
+* subclasses of notification: sms, email, call, ...
+* what if we want aplication object with not only one communication channel but more?
+
+## Bad solutions
+1. add new subclasses: smsEmail, smsCall, ...
+  * terrible, exponential growth
+2. one super class, fields will be set in constructor accordingly
+  * bool isSms; bool isEmail; ....
+  * hard to work with on client code side
+
+## Great solution
+* use decorator
+
+## Actors
+* baseDecorator
+* concreteDecorators
+* component
+* concreteComponent
+
+```cs
+// component
+public interface Notification {
+  public void Notify();
+}
+
+// concrete component
+// I chosed email as default communication channel
+public class Email : Notification {
+  private string _mail;
+  public Email(string mail) {
+    _mail = mail;
+  }
+
+  public void Notify() {
+    // concrete implementation of notification via email
+  }
+}
+
+// base decorator - it seems to me as optional but it adds consistency
+public abstract class BaseDecorator : Notification {
+  private Notification _wrappee;
+  public BaseDecorator(Notification wrappee) {
+    _wrappee = wrappee;
+  }
+
+  public virtual void Notify();
+}
+
+// concrete decorator
+public abstract class SmsDecorator : BaseDecorator {
+  private Notification _wrappee;
+  public SmsDecorator(Notification wrappee) {
+    _wrappee = wrappee;
+  }
+
+  public Notify() {
+    // implementation of notification via SMS
+    _wrappee.Notify();
+  }
+}
+
+// concrete decorator
+public abstract class CallDecorator : BaseDecorator {
+  private Notification _wrappee;
+  public CallDecorator(Notification wrappee) {
+    _wrappee = wrappee;
+  }
+
+  public Notify() {
+    // implementation of notification via phone
+    _wrappee.Notify();
+  }
+}
+
+// client code
+Notification notification = new Email();
+notification = new SmsDecorator(notification);
+notification = new CallDecorator(notification);
+
+notification.Notify();
+// CallDecorator instance calls the customer and then delegates the work to SmsDecorator instance
+// and so on
+
+
+// call -> sms -> email
+```
+
+## When to use
+* want to add extra behaviour at runtime to object
+* use when inheritance is awkward to use
+
+## Advantages
+* single responsibility principle
+* add more functionallity to object at run time
+* no need for exponentially many subclasses
+
+## Disadvantages
+* hard to delete decorator from stack
+* the ordering of decorators matters
+* 
