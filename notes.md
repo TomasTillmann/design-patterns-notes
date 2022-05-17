@@ -1464,10 +1464,117 @@ public class CareTaker {
 * if too many mementos too often, it could be hard on memory
 * nested classing might be a problem
 
+# Observer
+* some object want to be notified, when change in some other happens, in order to make some action
+
+## Actors
+1. Publisher / Subject
+2. Subscriber
+
+## Example
+* meteostation and display
+* display wants to change its data whenever meteostation changes temperature
+* could be solved by active waiting, but that is inefficient
+
+## Good solution
+* meteostation is publisher
+* we attach display as one of its subscribers
+* whenever change in meteostation occurs, it notifies all of its subscribers
+
+```cs
+// subscribers interface
+public interface Sub {
+  public void Execute();
+}
+
+public interface IPublisher {
+  public void Notify();
+  public void Attach();
+  public void Detach();
+
+  // optional
+  public void Logic();
+}
+
+public class meteostation : IPublisher {
+  private int temp;
+  private List<Sub> subs;
+
+  public void ChangeTemp(int newTemp) {
+    temp = newTemp;
+
+    //notify subscribers
+    Notify();
+  }
+
+  public void Attach(Sub sub) {
+    subs.Add(sub);
+  }
+
+  public void Detach(Sub sub) {
+    subs.Delete(sub);
+  }
+
+  // passive waiting
+  public void Notify() {
+    foreach(var sub in subs) {
+      sub.Execute();
+    }
+  }
+}
+```
+
+* if more subscribers, not really related, they can still implement sub interface and Execute will just call some different sub method
+
+## How to pass data to subs?
+### Push
+* publisher pushes data to osberver
+* needs to distinguish between them though
+* wider interface - overload methods
+
+```cs
+  public void Notify() {
+    foreach(var sub in subs) {
+      if(sub is Display)
+        sub.Execute(temp);
+    }
+  }
+```
+
+### Pull
+* better imo
+
+```cs
+  // remains the same
+  public void Notify() {
+    foreach(var sub in subs) {
+        sub.Execute(temp);
+    }
+  }
 
 
+  // sub
+  public void Execute() {
+    int temp = meteostation.GetState();
+  }
+```
+* only subs that want some data will ask for them
+* required fields needs to be public though (on publisher)
 
 
+## When to use
+* one object changes something when another one does too, isnt known before hand (run time decision)
+  * eg gui button should do some action
+  * button is publisher
+  * some busines logic method is subscriber
+
+## Advantages
+* open closed principle
+  * can easily add new subsribers and remove them dynamically
+* run time changes
+## Disadavantages
+* subscribers are notified randomly
+  
 
 
 
