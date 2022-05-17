@@ -32,22 +32,22 @@
 ## Imlementation
 * lets say we, the complex object is house
 ```cs
-public class House{
+public class House {
 //trililion fields
- public House(... // trillion paramters){
- }
+  public House(... // trillion paramters){
+  }
 }
 
 public interface HouseBuilder {
 public void BuildDoor();
 ...
-return this;  // allows nice fluent syntax eg. builder.BuildDoor().BuildWindows().BuildRoof();
 }
 
-public class ElegantHouseBuilder : HouseBuilder{
+public class ElegantHouseBuilder : HouseBuilder {
 public house;
-public HouseBuilder(House houseToBuildStepByStep){
- house = houseToBuildStepByStep;
+
+public ElegantHouseBuilder(House houseToBuildStepByStep){
+  house = houseToBuildStepByStep;
 }
 
 // define methods that build house step by step
@@ -57,8 +57,10 @@ public HouseBuilder(House houseToBuildStepByStep){
 
 // builds elengant door from given material
 public void BuildDoor(Material material){
- house.door = new Door(material);
-}
+  house.door = new Door(material);
+
+    return this;  // allows nice fluent syntax eg. builder.BuildDoor().BuildWindows().BuildRoof();
+  }
 ...
 }
 
@@ -937,6 +939,170 @@ c1.Successor = defaultHandler;
 
 ## Disadvantages
 * some request might become unhandled
+
+# Command
+* zapouzdreni vykonani konkretni akce (metody na nejakem objektu misto konkretniho objektu) do objektu
+
+## Actors
+1. **ICommand**
+* Execute()
+
+2. **ConcreteCommand : ICommand**
+* implementuje Execute() 
+* zapouzdruje receivra
+  * odkaz na objekt s tou metodou kterou chceme volat
+* pamatuje si parametry s jakymi chceme volat
+* ConcreteCommand pouze deleguje akci, neprovadi zadny konkretni vypocet
+
+3. **Invoker**
+* rozhoduje, kdy se provede Execute()
+* ma referenci na ConcreteCommand, pouze provede `concreteCommand.Execute()`
+
+4. **Client**
+* inicializuje Invokera s konkretnimi commands
+
+## Example
+### GUI
+* cudliky jsou Invokeri
+* akce co se ma provest po kliknuti cudliku je command
+
+### Light switch
+```cs
+class Light
+{
+    void TurnOn() {
+        WriteLine("Light on");
+    }
+
+    void TurnOff() {
+        WriteLine("Light off");
+    }
+}
+
+class Switch
+{
+    private ICommand upCommand, downCommand;
+
+    public Switch(ICommand up, ICommand down)    
+    {
+        upCommand = up;
+        downCommand = down;
+    }
+
+    public void FlipUp() {
+        upCommand.Execute();
+    }
+
+    public void FlipDown() {
+        downCommand.Execute();
+    }
+}
+
+public interface ICommand
+{
+    void Execute();
+}
+
+
+class LightOnCommand : ICommand
+{
+    private Light myLight;
+
+    LightOnCommand(Light light) {
+        myLight = light;
+    }
+
+    void Execute() {
+        myLight.TurnOn();
+    }
+}
+
+class LightOffCommand : ICommand
+{
+    private Light myLight;
+
+    LightOffCommand(Light light) {
+        myLight = light;
+    }
+
+    public void Execute() {
+        myLight.TurnOff();
+    }
+}
+
+// Client
+static void Main(string[] args)
+{
+    Light light = new Light();
+
+    ICommand lightOn  = new LightOnCommand(light);
+    ICommand lightOff = new LightOffCommand(light);
+
+    Switch mySwitch = new Switch(lightOn, lightOff);
+    mySwitch.FlipUp();
+    mySwitch.FlipDown();
+}
+```
+
+### Undo redo
+
+```cs
+interface ICommand
+{
+    void Execute();
+    void Undo();
+}
+
+class PasteCommand : ICommand
+{
+    private Document document;
+    private Stack<string> history;
+
+    PasteCommand(Document doc)
+    {
+        document = doc;
+        
+        // shared history between multiple commands
+        history = document.GetHistory();
+    }
+
+    void Execute()
+    {
+        // save old state
+        history.Push(document.GetText());
+        
+        // changes to new state
+        document.Paste();
+    }
+
+    void Undo()
+    {
+        document.SetText(history.Pop(oldText));
+    }
+}
+```
+### Modification
+* Instead of command objects, lambdas/delegates could be used
+
+## When to use
+* Action is now a standaolne object, hence you can pass commands as method arguments, switch commands at run time, store commands for later ...
+
+1. store, pass, change action at run time
+2. undo, redo
+3. deffered excution of operation 
+
+## Advantages
+* separation of concerns
+  * caller and callee is seperated
+  * in favor of single responsibility principle
+* open/closed principle
+  * can easily add new commands
+
+## Disadvantages
+* each command is new subclass -> potentially big number of commands
+
+
+
 
 
 
