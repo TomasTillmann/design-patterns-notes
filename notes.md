@@ -1233,6 +1233,238 @@ public class ComponentB : IComponent {
 ## Disadvantages
 * god object potential
 
+# Memento
+* use when we want to save state and mayble later come back and restore this state
+
+## Example
+* house with lights
+* we light up different lights, than we want to save this state, we light up/light off some lights and now we want to return to the saved state
+
+### Solution 1
+* inner state of house public
+* breaks encapsulation
+
+```cs
+public class House {
+  // should be private
+  public Light[] lights;
+  ...
+  public void LightUp(int index) {
+    lights[index] = lights[index].lightUp();
+  }
+
+...
+
+}
+
+// client
+
+house.LighUp(2);
+house.LighUp(1);
+house.LighUp(5);
+
+// save state
+Light[] lights = house.lights;
+
+...
+
+house.lights = lights;
+```
+
+* breaks encapsulation - really bad
+
+## Solution 2
+```cs
+public class House {
+  private Light[] lights;
+  ...
+  public void LightUp(int index) {
+    lights[index] = lights[index].lightUp();
+  }
+...
+
+  public void SaveState() {
+    ...
+  }
+
+  public void RestoreState() {
+    ...
+  }
+
+}
+```
+* breaks single responsibility principle
+* House shouldn't change his internals - sepearation of concerns 
+
+## Solution 3
+* use memento
+
+## Actors
+1. Originator
+* House
+* Entity we want to manage states for
+
+2. Memento
+* state
+
+3. Care taker
+  * manages states lifecycle
+  * that's all
+
+## Bad Example - probably will delete
+```cs
+public class CareTaker {
+  private Dict<Key, Memento> mementos;
+  private House house;
+
+  public CareTaker(House house) {
+    this.house = house;
+  }
+
+  public void AddMemento(Key key) {
+    mementos[key] = house.CreateMemento(memento);
+  }
+
+  public void SetMemento(Key key) {
+    house.SetMemento(mementos[key]);
+  }
+}
+
+public class House {
+  ...
+
+  private Light[] lights;
+
+  public void CreateMemento() {
+    return new Memento(lights);
+  }
+
+  public void SetMemento(Key key) {
+    lights = mementos[key].State;
+  }
+}
+
+public class Memento {
+  private Light[] State;
+  public Memento(Light[] state) {
+    this.state = state;
+  }
+}
+
+// client
+House house = new House();
+CareTaker taker = new CareTaker(house);
+
+house.LighUp(2);
+house.LightUp(5);
+house.LightOff(3);
+
+Key state1 = new Key("state 1");
+taker.AddMemento(state1);
+
+house.LighUp(1);
+house.LightOff(3);
+house.LightUp(5);
+...
+
+// restore nicely
+taker.SetMemento(state1);
+```
+
+## Example
+* undo redo of comlex GUI app
+
+### Bad solution 
+* remember state of whole application between every actions
+  * a lot of space required
+  * cant access some objects data, cant be stored for later
+
+### Good solution 
+* each object takes care only of his own states - mementos
+* pushes these mementos on "global" stack
+
+## Actors
+1. Originators
+* entities whose state is remembered
+
+2. Memento
+* some entity state
+
+3. Care taker
+* manages mementos life cycle
+* nothing more!
+
+```cs
+// gui elements
+
+public Editor { 
+  // some data - state
+  private int x;
+  private int y;
+  ...
+
+  // some actions
+  ...
+
+  public Memento CreateMemento() {
+    return new Memento(x, y, ... );
+  }
+
+  public void Restore(Memento memento) {
+    this.x = memento.x;
+    this.y = memento.y;
+    ...
+  }
+
+  // nested - origiantor can see everything, but care taker can only manage their lifecycle (not eg data, or create new ones)
+
+  // its also immutable - might be also a struct
+  private class Memento {
+    private int x;
+    private int y;
+    ...
+
+    public Memento(int x, int y, ...) {
+      this.x = x; this.y = y;
+      ...
+    }
+  }
+}
+
+public class CareTaker {
+
+  // history of the editor
+  private Stack<Memento> mementos;
+  private Editor editor;
+
+  public CareTaker(Editor editor) {
+    this.editor = editor;
+  }
+
+  // can be called anytime before operation
+  public void MakeBackup() {
+    mementos.Push(new Memento(editor.x, editor.y, ...));
+  }
+
+  public void Undo() {
+    editor.restore(mementos.Pop());
+  }
+}
+```
+
+## When to use
+* when yo want to restore states
+* when other implementations of this would violate encapsulation
+
+## Advantages
+* simpler originators code, care taker manages some of it
+* you can produce snapshots
+
+## Disadvantages
+* if too many mementos too often, it could be hard on memory
+* nested classing might be a problem
+
+
 
 
 
