@@ -1685,7 +1685,87 @@ public class Brush : Tool {
 * too many states - too many transition methods
   * can be saved by baseState iterlayer between IState and concrete states
 
+# Strategy
+* abstract algorithm seperated from concrete implementation
 
+## Example
+* app that finds shortest route between two points by car
+* later we want to add to find shortest route by boat
+* walk, trams, buses and trains, etc ...
+* one concrete algorithm - find route, concrete implementations - by specific vehicle
+
+## Actors
+1. Context
+2. IStrategy
+3. Concrete strategy
+
+```cs
+public interface IStrategy {
+  // no need for void
+  public void Action();
+}
+
+public class Context {
+  private IStrategy strategy;
+
+  public Context(IStrategy strategy) {
+    this.SetStrategy(strategy);
+  }
+
+  // no need for void
+  public void Action() {
+    strategy.Action();
+  }
+
+  public void SetStrategy(IStrategy strategy) {
+    this.strategy = strategy;
+  }
+}
+
+public class Strategy1 : IStrategy {
+  public void Action() {
+    // concrete action
+  }
+}
+
+public class Strategy2 : IStrategy {
+  public void Action() {
+    // concrete action
+  }
+}
+
+
+// client
+IStrategy strategy = new Strategy1();
+Context context = new Context(strategy);
+
+context.Action();
+
+
+// can change strategies at run time
+context.SetStrategy(new Strategy2());
+context.Action();
+```
+
+## When to use
+* different variants of an algorithm at run time
+* objects that differ only in some specific actions
+  * can keep it as one and make actions the hieararchy
+* use when massive conditional operators used to switch between concrete algorithms
+
+## Advantages
+* run time swapping of algos
+* seperates abstraction from implementation
+* uses composition - flexible
+* open/closed principle
+  * can easily change strategies
+
+## Disadvantages
+* delegates are better
+  * not polluting and bloating your code with extra classes and interfaces
+* overkill if only handful of algos
+* clients must be aware of strategies
+  * can be overcome by parameterless constructor that sets strategy to some default one (but possible it doesnt have access)
 
 
 
