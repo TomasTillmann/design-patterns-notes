@@ -29,7 +29,7 @@
 
 
  
-## Imlementation
+## Implementation
 * lets say we, the complex object is house
 ```cs
 public class House {
@@ -102,6 +102,21 @@ public class HouseDirector{
 * when creating tree like structures (eg some subtree in composite tree)
 * encapsulation, hides implementation, like concrete product's properties (can only be modified by builders build methods)
 
+## Relation to other patterns
+* abstract factory / factory method
+  * returns product immediately
+  * builder builds it step by step
+
+* Composite
+  * builder can build some parts of composite tree, becuase builders construction steps can be programmed recursively
+
+* Bridge
+  * director acts like abstraction
+  * builder acts like implementation
+
+* singleton
+  * can be implemented as singleton
+
 # Prototype
 ## Use
 * want to make exact copy of some object x instantiated from class X
@@ -154,6 +169,8 @@ public class HouseDirector{
 
 ## Disadvantages
 * complex objects with eg. circular dependencies might be too difficult to copy
+
+
 
 
 # Singleton
