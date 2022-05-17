@@ -1575,6 +1575,118 @@ public class meteostation : IPublisher {
 ## Disadavantages
 * subscribers are notified randomly
   
+# State
+* used when object remembers some internal state
+* used when many if statements or huge switchs are involved
+* from the outside, it looks like its completelely chaning its implementation
+
+## Example
+### Drawing program
+* tool button, we want to change its behaviour based on user preference
+* soometimes it is a pen, rubber, select tool, ...
+
+```cs
+public void Action() {
+  if(tool == "Brush") {
+
+  }
+  else if (tool == "pen") {
+
+  }
+  ...
+}
+
+// or
+
+public void Action() {
+  switch(tool) {
+    ...
+  }
+}
+```
+* it behaves like finite state machine
+* we want to change behaviour at run time
+
+* this solution is really bad
+
+## Good solution
+* use state pattern
+
+## Actors
+1. Context
+* what keeps track of current state
+
+2. IState
+* some action()
+
+3. State
+* implements IState
+
+* Context delegates work on current state
+
+```cs
+public class Cursor : IContext {
+  private Tool tool;
+
+  public Cursor() {
+    // brush is default/starting state
+    tool = new Brush(this);
+  }
+
+  public void Action() {
+    tool.Action();
+  }
+
+  // can be attached to button on GUI
+  public void OnPenSelected() {
+    tool.ChangeToPen(); 
+  }
+
+  public void SetState(Tool state) {
+    tool = state;
+  }
+}
+
+// tool is state
+public class Brush : Tool {
+  private IContext cursor;
+
+  public Tool(IContext cursor) {
+    this.cursor = cursor;
+  }
+
+  public void Action() {
+    // on brush action
+  }
+
+  public void ChangeToPen() {
+
+    // creates new instance all the time, room for improvement
+    cursor.SetState(new Pen());
+  }
+
+  public void ChangeToBrush() {
+    return;
+  }
+}
+```
+* states can be either changed by states (above) or context
+* state managment either new instances (above)
+* or better, states live in context (tool has reference on context)
+
+## Advantages
+* single responsibility
+  * each state does his own work
+* open/closed principle
+  * can easily remove/add new states
+
+## Disadvantages
+* overkill if little number of states or the job of each state isnt that significant
+* too many states - too many transition methods
+  * can be saved by baseState iterlayer between IState and concrete states
+
+
+
 
 
 
