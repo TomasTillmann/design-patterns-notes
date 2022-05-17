@@ -1101,6 +1101,66 @@ class PasteCommand : ICommand
 ## Disadvantages
 * each command is new subclass -> potentially big number of commands
 
+# Iterator
+* iterates over a collection
+* hides internal representation of data
+* client doesn't need to know how data are stored, client just cares about how to iterate over them, in order to access to them
+
+## Actors
+1. abstract list
+2. concrete list
+3. abstract iterator
+4. concrete iterator
+
+## Types of iterators
+### Who is responsible for the iteration
+1. External
+* client manages the access
+```cs
+var iterator = collection.GetEnumerator();
+while(nextElement = iterator.Next() != null) {
+  // execution
+}
+```
+
+2. Internal
+* iterator manages the access
+```cs
+collection.ForEach() {
+  // execution
+}
+```
+
+## Who implements the algorithm
+1. Cursor
+* only  remembers index where it is in the collection
+* public API is sufficient
+
+2. Iterator
+* needs to have access on implememntation of the collection
+  * public API isn't sufficient
+* C#
+  * private nested class
+* C++
+  * friend class
+
+
+## Virtual iterators
+* iterates over infinity collection
+  * eg fibonnachi numbers
+* lazy iterations - generates data while iterating
+  * IEnumerable in C# (eg LINQ)
+
+## What to do when collection changed while iterating over it
+* C# / Java - exception
+* C - undefined behavior
+
+## Advantages
+* One collection can have more iterators independently of one another
+* No need for the client to care about internal representation
+* easy interface for collection sequential accesss
+
+
 
 
 
