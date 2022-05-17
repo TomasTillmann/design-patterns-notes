@@ -1160,6 +1160,78 @@ collection.ForEach() {
 * No need for the client to care about internal representation
 * easy interface for collection sequential accesss
 
+# Mediator
+* many objects that communicate with each other -> mess
+* one object responsible only for communication between them
+
+## Example
+* plane coordination -> one coordination tower = mediator
+
+## Actors
+1. Mediator interface
+2. Concrete mediator
+3. Components interface
+4. Concrete components
+
+```cs
+public inerface IMediator {
+  public void Notify(object sender, Event event);
+}
+
+public interfce IComponent {
+  public void Operation();
+}
+
+public class Mediator : IMediator {
+  public void Notify(object sender, Event event) {
+    if (sender is ComponentA) {
+      switch(event) {
+        ...
+      }
+    }
+
+    if(sender is ComponentB) {
+      ...
+    }
+  }
+}
+
+public class ComponentA : IComponent {
+  private Mediator mediator;
+
+  public Component(Mediator mediator) {
+    this.mediator = mediator;
+  }
+
+  public void Operation() {
+    // some operation 
+
+
+    // notifies other components 
+    mediator.Notify(this, Events.SomeEvent);
+  }
+}
+
+public class ComponentB : IComponent {
+  ...
+}
+
+```
+## How to notify concrete component?
+* mediator notifies all components that current component is ever communicating with
+* the receiver decides, whether the event is important or not
+
+## Advantages
+* separation of concerns
+  * mediator / components
+
+* loose coupling
+
+* open closed principlie
+  * can easily add new components and new reactions on events
+
+## Disadvantages
+* god object potential
 
 
 
