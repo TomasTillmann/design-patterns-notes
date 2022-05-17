@@ -1767,6 +1767,112 @@ context.Action();
 * clients must be aware of strategies
   * can be overcome by parameterless constructor that sets strategy to some default one (but possible it doesnt have access)
 
+# Visitor
+* does external work on some collection of objects
+
+## Problem
+* Export graph to XML
+* graph's nodes are different objects (following the same interface )
+
+## Bad solution
+* add ExportToXML() to each node
+* traverse the graph
+### Why it's bad
+* changes to all subclasses of node (need for re-testing)
+* violates single responsibility principle
+  * concrete node should care only about eg geodata or smthg like this, not about XML serializing
+* violates open/closed principle
+  * bloats the code, if other serialization is added
+
+## Good solution
+* Use visitor pattern
+
+## Actors
+1. Element
+2. Concrete element
+3. Visitor
+4. Concrete visitor
+5. IVisitable
+  * optional, can be already in element interface
+
+```cs
+// IVisit
+public interface IVisitable {
+  public void Visit(Visitor visitor);
+}
+
+// Element
+public interface INode : IVisitable {
+  //some actions
+}
+
+// concrete element
+public class City : INode {
+  ...
+
+  // double dispatch
+  public void Visit(Visitor visitor) {
+    visitor.OnCity();
+  }
+
+}
+
+// concrete element
+public class Country : INode {
+  ...
+
+  public void Visit(Visitor visitor) {
+    visitor.OnCountry();
+  }
+}
+...
+
+// visitor handler - visitor
+public interface IVisitor {}
+
+// concrete visitor
+public class XmlParser : IVisitor {
+  private File file;
+  public XmlParser(string fileToWriteTo) {
+    file = new Stream(fileToWriteTo);
+  }
+
+
+  public void onCity() {
+    // parses city to file
+  }
+
+  public void onCountry() {
+    // parses country to file
+  }
+  ...
+}
+
+// client
+
+// get nodes from the map
+IEnumerable<INode> nodes = map.GetNodes();
+Visitor XmlParser = new XmlParser();
+
+foreach(var node in nodes) {
+  node.Visit(XmlParser);
+}
+```
+
+## When to use
+* when you have collection of complex objects and you want to execute some concrete function on each element
+* objects can focus on their bussines logic
+
+## Advantages
+* open / closed principle
+  * can easily add new visitors
+* single responsibility principle
+  * separates external logic from busines logic of object
+
+## Disadvantages
+* each time change to some element is made, each visitor must be changed accordingly
+* visitor might lack access to private fields
+
 
 
 
