@@ -1873,7 +1873,91 @@ foreach(var node in nodes) {
 * each time change to some element is made, each visitor must be changed accordingly
 * visitor might lack access to private fields
 
+# Template method
+* abstracts algorithm to steps, that can be either identical to each implementation or implemented by its subclasses
 
+## Example
+* we want to simulate behavior of entities in a game
+  * monsters, humans, animals, ...
+
+```cs
+public class GameAI {
+  private List<Resource> resources;
+  ...
+
+  public void Step() {
+    CollectResources();
+    BuildStuctures();
+    BuildUnits();
+    Attack();
+  }
+
+  // some can be already implemented
+  public virtual void CollectResources() {
+    foreach(var resource in Surrondings(this).GetResources()) {
+      resources.Add(resource);
+    }
+  }
+
+  // some needs to be overriden
+  public virtual void BuildStructures();
+  public virtual void BuildUnits();
+  
+  // another template method 
+  public void Attack() {
+    Enemy enemy = Surrondings.GetEnemies().GetNeariest();
+
+    if(enemy == null)
+      sendScouts(10);
+    else
+      sendWarriors(10);
+  }
+
+  private virtual void sendScouts(int n) {
+      Surrondings.Spawn(EntitiesFactory.GetScouts(n));
+  }
+
+  private virtual void sendWarriors(int n) {
+      Surrondings.Spawn(EntitiesFactory.GetWarriors());
+  }
+}
+
+public class HumanAI : GameAI{
+  public override void BuildResources() {
+    // concrete human implementation
+  }
+  ...
+}
+
+// client code
+var humans = Surrondings.GetHumans(Location.NearbyOnly);
+var monsters = Surrondins.GetMonsters(Location.NearbyOnly);
+
+foreach(var human in humans) {
+  human.Step();
+}
+
+foreach(var monster in monsters) {
+  monster.Step();
+}
+```
+
+## When to use
+* keep the structure of some algorithm the same but concrete steps might differ and some not
+* extract algorithm from different classes that differ only in this algorithm
+  * -> one object (or at least significantly less)
+  * seperation of concerns
+  * algorithm change doesnt require change of each object
+
+## Advantages
+* seperation of concerns
+  * moduling, change of subalgorithm doesnt change other algorithms or the whole algorithm
+  * easy to maintain
+* reduces duplicate codes
+
+## Disadvantages
+* predefined skeleton of algorithm might be limiting
+* the more steps they have the harder to maintain
 
 
 
