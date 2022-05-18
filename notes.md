@@ -170,6 +170,20 @@ public class HouseDirector{
 ## Disadvantages
 * complex objects with eg. circular dependencies might be too difficult to copy
 
+## Relation to other patterns
+* Abstract factory
+  * factory methods can be implemented with prototypes
+
+* Command
+  * when you want to save commands to history
+
+* Composite, decorator
+  * cloning of complex objects
+
+* memento
+  * prototype can be used as mememnto
+  * originator is protoptype - has clone()  
+  * state to remember (= memento) is clone of originator 
 
 
 
@@ -221,6 +235,15 @@ public class Singleton{
 * hard to write tests
 * possibility of resource leaks
   * when to unallocate? Let it unallocate at the end of process?
+
+## Relations
+* Facade
+  * one instance of facade to some complex subsystem is usually enough
+
+* Flyweight
+  * if only one shared state
+  * flyweight object is immutable though
+
 
 # **Structural patterns**
 
@@ -331,6 +354,23 @@ SoundMaker catSound = new AnimalSound(new Cat().Meow);
 ## Disadvantages
 * complexity of code can increase dramatically, because of new adpater classes, potentially adpter interfaces (if more than one)
    * might be easier to just rewrite service API
+  
+## Relations
+* Bridge
+  * bridge is designed up front
+  * adapter is designed with already well functioning existing app
+
+* Facade
+  * simpler interface for usually many complex subsystems
+  * adapter changes interface to client interface, usually of one object
+
+* Proxy
+  * same interface, doing something different than underlying object
+
+* Decorator
+  * same interface with enhanced functionality
+  * supports recursive composition
+
 
 # Bridge
 * seperates abstraction and implementation
@@ -413,6 +453,23 @@ public Sword : IWeapon {
 
 ## Disadvantages
 * I see no disadvantages
+
+## Relations
+* adapter
+  * bridge is up front
+
+* builder
+  * director is abstraction and concrete builders are implementations
+
+* state, decorator, proxy, adapter, ...
+  * all delegate work to other objects but each of them do it with different purpose
+
+* abstract factory / factory method
+  * create concrete objects with concrete implementations
+  * hides complexity from client
+  * eg: factory method: CreateEnemy(Weapon.Sword);
+  * abstract factory: factory for enemies
+    * method CreateWithSword();
 
 # Decorator
 * also called wrapper
@@ -522,7 +579,37 @@ notification.Notify();
 ## Disadvantages
 * hard to delete decorator from stack
 * the ordering of decorators matters
-* 
+
+## Relations
+* adapter
+
+* proxy
+
+* chain of responsibility
+  * same structure
+  * differences:
+    * CoR each chain element does some calculation independently of each other
+    * can stop the request at any point
+    * Decorator keeps the same interface
+    * can only add functionality, cannot stop the request at any point
+  
+* composite
+  * decorator has only one child
+  * composite just cares about the structure and calculation happens in children
+  * decorator has some functionality at each step
+  * can work together
+
+* Prototype
+  * easier for copying complex recursive decoratrs structure
+  * only way how to make the same instance of complex decorator
+
+* Strategy
+
+* Proxy
+  * same composition structure and both delegate work on underlying object
+  * proxy delegates work with underlying object on itself, client doesnt even need to know that he is communicating with proxy and not the service itself
+  * decorats on the other hand are managed by client
+
 
 # Facade
 * provides simpler communication layer between client and complext system/API/library ...
@@ -558,6 +645,26 @@ notification.Notify();
 
 ## Disadvantages
 * client code can be too coupled to the facade - become a god object
+
+## Relations
+* Adapter
+
+* Abstract factory
+  * if we only want to hind how complex entities are created, abstract factory can work as a facade
+
+* Proxy
+  * both provide some interface to object
+  * proxy the same
+  * facade easier
+
+* Mediator
+  * both provide communication channel between complex systems to avoid tight coupling
+  * facade is optional, client can communicate directly with subsystem
+  * subsystem is unaware of the facade
+  * objects know only about mediator, cannot communicate with each other directly
+
+* singleton
+  * usually one instance of facade is necessary to some complex system (resource)
 
 # Flyweigth
 * detaches shared state between many objects
@@ -748,6 +855,14 @@ public struct Ant {
   * allocation and deallocation of objects
     * eg client should tell flyweightFactory, when hes not going to use some shared state anymore
 
+## Relations
+* Composite
+  * composite leafs can be shared - flyweight
+
+* Signleton
+  * if only one shared state
+  * singleton can be mutable though
+
 # Proxy
 * acts as a middleman between some service and client
 * its very useful if we want to make some operations before or/and after we call some service methods
@@ -829,6 +944,13 @@ public class DatabseProxy : Database {
 ## Disadvantages
 * makes code a lot more complex
 * adds new layer
+
+## Relations
+* adapter
+
+* facade
+
+* decorator
   
 # **Behavioral patterns**
 # Chain of responsibility
@@ -957,6 +1079,22 @@ c1.Successor = defaultHandler;
 ## Disadvantages
 * some request might become unhandled
 
+## Relations
+* chain of responsibility, command, mediator, observer
+  * from the perspective of sender and receiver
+  * chain of responsibility doesnt care who he sends a request or whether he sends it, most important thing is to complete the request
+  * command seperates sender and receiver, but he exactly knows who the request handles
+  * mediator is in between every communication between true senders and receivers
+  * observer
+    * publisher doesnt care who he sends the request
+    * receivers care who they subscribe to and they can change it dynamically (on client side)
+  
+* Composite
+  * not only one chain but a tree like structure
+
+* Decorator
+  * same as in decorator already
+
 # Command
 * zapouzdreni vykonani konkretni akce (metody na nejakem objektu misto konkretniho objektu) do objektu
 
@@ -985,6 +1123,7 @@ c1.Successor = defaultHandler;
 
 ### Light switch
 ```cs
+// what command operates on
 class Light
 {
     void TurnOn() {
@@ -996,6 +1135,7 @@ class Light
     }
 }
 
+// Invoker
 class Switch
 {
     private ICommand upCommand, downCommand;
@@ -1075,7 +1215,7 @@ class PasteCommand : ICommand
     private Document document;
     private Stack<string> history;
 
-    PasteCommand(Document doc)
+    public PasteCommand(Document doc)
     {
         document = doc;
         
@@ -1097,6 +1237,13 @@ class PasteCommand : ICommand
         document.SetText(history.Pop(oldText));
     }
 }
+
+// client
+
+// pasteButton is invoker
+// invokes command whenever it's clicked
+pasteButton.AddEventListener(new PasteCommand(this.document), "click");
+
 ```
 ### Modification
 * Instead of command objects, lambdas/delegates could be used
@@ -1117,6 +1264,28 @@ class PasteCommand : ICommand
 
 ## Disadvantages
 * each command is new subclass -> potentially big number of commands
+
+## Relations
+* sender receiver analogy (same as in CoR)
+
+* CoR
+  * each handler can be also a command
+  * this way, we can pass CoR in some invoker and it acts as a command
+
+* memento
+  * both can be used to implement undo operation on some target object
+  * memento just saves the target state and then someone else executes the operation
+  * command can save the state and than also execute
+
+* strategy
+  * both do the same thing but with different intents
+  * command is used for storing some actions for later (as objects), even in multiple context
+  * strategy allows for swapping of implememntations of abstractions, usually in same context
+    * just describes different ways of doing the same thing
+  
+* prototype
+  * saving commands to history
+
 
 # Iterator
 * iterates over a collection
@@ -1250,6 +1419,19 @@ public class ComponentB : IComponent {
 ## Disadvantages
 * god object potential
 
+## Relations
+* composite
+  * easier traversal
+
+* factory method
+  * can create iterators for collections in concrete subclasses
+
+* memento
+  * save states while iterating over collection, allows for possible rollback
+
+* visitor
+  * traverse complex structure (eg graph of map) and operate on each object (eg each node of the graph)
+
 # Memento
 * use when we want to save state and mayble later come back and restore this state
 
@@ -1269,9 +1451,7 @@ public class House {
   public void LightUp(int index) {
     lights[index] = lights[index].lightUp();
   }
-
 ...
-
 }
 
 // client
@@ -1481,6 +1661,16 @@ public class CareTaker {
 * if too many mementos too often, it could be hard on memory
 * nested classing might be a problem
 
+## Relations
+* command
+  * undo
+
+* iterator
+  * capture state of iterator
+
+* prototype
+  * same as in prototype
+
 # Observer
 * some object want to be notified, when change in some other happens, in order to make some action
 
@@ -1592,6 +1782,18 @@ public class meteostation : IPublisher {
 ## Disadavantages
 * subscribers are notified randomly
   
+## Relations
+* sender and receiver perspective
+
+* mediator
+  * very similiar but both have different intents
+  * observer allows for dynamic one way communication
+  * mediator is used in order to avoid tight coupling  
+  * mediator can be implemented using observer
+    * all compononents are publishers and mediator is a subscriber
+    * or mediator is a publisher and compoenents subscribe or unsubscribe from his events (or dont care)
+
+
 # State
 * used when object remembers some internal state
 * used when many if statements or huge switchs are involved
@@ -1702,6 +1904,15 @@ public class Brush : Tool {
 * too many states - too many transition methods
   * can be saved by baseState iterlayer between IState and concrete states
 
+## Relations
+* strategy
+  * both change the behaviour of object at runtime
+  * strategies are independent of each other, but states know about each other (eg they can change from their state to another)
+
+* bridge, strategy, adapter
+  * they all delegate work to someone else
+  * but different intents
+
 # Strategy
 * abstract algorithm seperated from concrete implementation
 
@@ -1783,6 +1994,15 @@ context.Action();
 * overkill if only handful of algos
 * clients must be aware of strategies
   * can be overcome by parameterless constructor that sets strategy to some default one (but possible it doesnt have access)
+
+## Relations
+* command
+
+* decorator
+
+* template method
+  * strategy allows for run time changes, its based on composition
+  * template method is static, its based on inheritance
 
 # Visitor
 * does external work on some collection of objects
@@ -1890,6 +2110,19 @@ foreach(var node in nodes) {
 * each time change to some element is made, each visitor must be changed accordingly
 * visitor might lack access to private fields
 
+## Relations
+* composite
+  * apply visitor on entire composite tree
+
+* command
+  * visitor is powerful version of command
+  * command seperates method/action from concrete object who doest the action
+  * visitor does the same thing
+    * can execute operation over various classes
+  
+* iterator
+  * traverse some complex collection and apply visitor action to each element
+
 # Template method
 * abstracts algorithm to steps, that can be either identical to each implementation or implemented by its subclasses
 
@@ -1976,5 +2209,14 @@ foreach(var monster in monsters) {
 * predefined skeleton of algorithm might be limiting
 * the more steps they have the harder to maintain
 
+## Relations
+* almost everything can be a step in template method
+  * calling command
+  * calling strategy
+  * chaing of responsibility 
+  ...
 
-
+* strategy
+  * they both change behavior dynamicaly
+  * template method is based on inheritance, its static
+  * strategy is dynamic
